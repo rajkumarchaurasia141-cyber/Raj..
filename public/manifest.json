@@ -1,0 +1,39 @@
+{
+  "id": "/",
+  "name": "BSEB GURU - Class 10 Topper App",
+  "short_name": "BSEB GURU",
+  "description": "बिहार विद्यालय परीक्षा समिति (BSEB 10th) टॉपर तैयारी, हस्तलिखित नोट्स, लाइव क्लास व 50 MCQ टेस्ट वेब ऐप",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e1b4b",
+  "theme_color": "#1e1b4b",
+  "categories": ["education"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

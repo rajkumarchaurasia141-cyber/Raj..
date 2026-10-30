@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="hi" class="h-full scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>BSEB GURU - Class 9-10 Topper App</title>
+    <meta name="description" content="BSEB GURU - बिहार बोर्ड कक्षा 9वीं और 10वीं (BSEB) संपूर्ण तैयारी, लाइव क्लासेज, नोट्स और 50 MCQ टेस्ट" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <script>
+      // Early capture of PWA beforeinstallprompt so it is never missed
+      window.__deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__deferredPrompt = e;
+        window.dispatchEvent(new CustomEvent('app-install-ready'));
+      });
+    </script>
+    <meta name="theme-color" content="#1e1b4b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BSEB GURU" />
+    <meta name="application-name" content="BSEB GURU" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.youtube.com">
+    <link rel="preconnect" href="https://i.ytimg.com">
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Adsterra Popunder / Full-Screen Popup Ad -->
+    <script data-cfasync="false" src="https://abscloud.org/1/0d674643633dcda9940775dbdcf0857e"></script>
+  </head>
+  <body class="h-full overflow-y-auto bg-slate-50 text-slate-800 antialiased selection:bg-red-500/20">
+    <div id="root" class="min-h-full flex flex-col w-full"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- Adsterra Social Bar Ad -->
+    <script data-cfasync="false" src="https://bauval.org/14/77d5b7efc1ac76950df3e6aa2ad18dfa"></script>
+    <!-- Adsterra Popunder Ad -->
+    <script data-cfasync="false" src="https://abscloud.org/1/0d674643633dcda9940775dbdcf0857e"></script>
+  </body>
+</html>

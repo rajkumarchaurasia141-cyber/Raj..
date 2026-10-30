@@ -1,0 +1,131 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write to subjects and their chapters
+    match /subjects/{subjectId} {
+      allow read, write: if true;
+      
+      match /chapters/{chapterId} {
+        allow read, write: if true;
+      }
+    }
+
+    // Allow read/write to vip_users
+    match /vip_users/{userEmail} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to registered students
+    match /students/{studentId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to payment_requests (screenshot uploads and status)
+    match /payment_requests/{requestId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to payments (screenshot uploads and status)
+    match /payments/{paymentId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to paid_notes (PDF notes uploaded by admin)
+    match /paid_notes/{noteId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to live_classes
+    match /live_classes/{classId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to leaderboard
+    match /leaderboard/{entryId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to routine
+    match /routine/{routineId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to motivational_quotes
+    match /motivational_quotes/{quoteId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to notifications
+    match /notifications/{notifId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to settings
+    match /settings/{docId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to app_settings
+    match /app_settings/{docId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to admin_courses
+    match /admin_courses/{courseId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to users
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to class_attendance (live attendance & watch time tracking)
+    match /class_attendance/{recordId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to crash_course_requests (payment proof and requests for new crash course)
+    match /crash_course_requests/{requestId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to crash_course_access (entitlements for new crash course)
+    match /crash_course_access/{userEmail} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to crash_course_pdfs
+    match /crash_course_pdfs/{pdfId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to daily_tests (admin publishes, all students take tests)
+    match /daily_tests/{testId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to video_interactions (user likes, bookmarks, and playback progress)
+    match /video_interactions/{interactionId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to app_downloads (App Download & Install Tracker for Admin Panel)
+    match /app_downloads/{downloadId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to push_subscriptions (Web Push device subscriptions for students & admin)
+    match /push_subscriptions/{subId} {
+      allow read, write: if true;
+    }
+
+    // Allow read/write to push_notification_logs (Sent notification history & delivery status logs)
+    match /push_notification_logs/{logId} {
+      allow read, write: if true;
+    }
+  }
+}
+
+

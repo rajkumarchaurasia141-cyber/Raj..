@@ -1,0 +1,6 @@
+{
+  "name": "BSEB GURU",
+  "description": "बिहार बोर्ड कक्षा 9वीं और 10वीं (BSEB) NCERT हिंदी माध्यम संपूर्ण तैयारी - All Subjects, टॉपर बैच, पिछले साल के प्रश्न, और टेस्ट सीरीज।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

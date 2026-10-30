@@ -1,0 +1,184 @@
+{
+  "entities": {
+    "PaymentRequest": {
+      "title": "PaymentRequest",
+      "description": "Student payment proof and VIP upgrade request",
+      "type": "object",
+      "properties": {
+        "studentName": { "type": "string", "description": "Name of student" },
+        "studentEmail": { "type": "string", "description": "Login email of student" },
+        "plan": { "type": "string", "enum": ["1month", "1year"] },
+        "planTitle": { "type": "string" },
+        "planAmount": { "type": "string" },
+        "planPrice": { "type": "number" },
+        "screenshotDataUrl": { "type": "string", "description": "Base64 compressed image data of payment screenshot" },
+        "utr": { "type": "string", "description": "Optional UPI reference or transaction ID" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "submittedAt": { "type": "string" },
+        "approvedAt": { "type": "string" }
+      },
+      "required": ["studentEmail", "plan", "screenshotDataUrl", "status", "submittedAt"]
+    },
+    "VipUser": {
+      "title": "VipUser",
+      "description": "User granted VIP status",
+      "type": "object",
+      "properties": {
+        "isVip": { "type": "boolean" },
+        "plan": { "type": "string" },
+        "planDuration": { "type": "string" },
+        "planPrice": { "type": "number" },
+        "addedAt": { "type": "string" },
+        "validFrom": { "type": "string" },
+        "expiresAt": { "type": "string", "description": "ISO timestamp when VIP validity expires (30 days or 365 days)" }
+      },
+      "required": ["isVip", "addedAt"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student profile record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["email", "name"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "Board subject curriculum node",
+      "type": "object",
+      "properties": {
+        "subject_name": { "type": "string" },
+        "subject_name_hindi": { "type": "string" },
+        "tagline": { "type": "string" },
+        "icon": { "type": "string" },
+        "color": { "type": "string" }
+      },
+      "required": ["subject_name", "subject_name_hindi"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "Subject chapter content with notes, tips, QnA and MCQs",
+      "type": "object",
+      "properties": {
+        "chapter_no": { "type": "number" },
+        "chapter_name": { "type": "string" },
+        "chapter_name_hindi": { "type": "string" },
+        "section_name": { "type": "string", "description": "Section label like गद्य खंड, काव्य खंड, or वर्णिका" },
+        "intro_hindi": { "type": "string" },
+        "notes_hindi": { "type": "string" },
+        "topper_tips": { "type": "string" },
+        "subjective_qa": { "type": "string" },
+        "mcq": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["chapter_no", "chapter_name_hindi"]
+    },
+    "PaidNote": {
+      "title": "PaidNote",
+      "description": "Premium PDF study note uploaded by admin",
+      "type": "object",
+      "properties": {
+        "subjectId": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "chapterNo": { "type": "number" },
+        "chapterName": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "pdfUrl": { "type": "string" },
+        "totalPages": { "type": "number" },
+        "fileSize": { "type": "string" },
+        "isPaid": { "type": "boolean" },
+        "uploadedAt": { "type": "string" }
+      },
+      "required": ["subjectId", "title", "pdfUrl"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User account registration details",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "photo": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User registration status and active settings"
+    },
+    "/subjects/{subjectId}": {
+      "schema": "Subject",
+      "description": "Subjects list"
+    },
+    "/subjects/{subjectId}/chapters/{chapterId}": {
+      "schema": "Chapter",
+      "description": "Chapters under a subject with notes, intro, tips and 50 MCQs"
+    },
+    "/paid_notes/{noteId}": {
+      "schema": "PaidNote",
+      "description": "Premium PDF notes collection"
+    },
+    "/payment_requests/{requestId}": {
+      "schema": "PaymentRequest",
+      "description": "Uploaded screenshots and payment verification queue"
+    },
+    "/vip_users/{userEmail}": {
+      "schema": "VipUser",
+      "description": "Granted VIP memberships"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Registered students database"
+    },
+    "/live_classes/{classId}": {
+      "description": "Live and recorded YouTube classes"
+    },
+    "/leaderboard/{entryId}": {
+      "description": "Student test scores and leaderboard rankings"
+    },
+    "/routine/{routineId}": {
+      "description": "Study routine and time table schedule"
+    },
+    "/motivational_quotes/{quoteId}": {
+      "description": "Motivational quotes for students"
+    },
+    "/notifications/{notifId}": {
+      "description": "Real-time announcements and alerts"
+    },
+    "/settings/{docId}": {
+      "description": "Global application configuration, UPI ID, prices, banners"
+    },
+    "/admin_courses/{courseId}": {
+      "description": "Course catalog managed by administrator"
+    },
+    "/crash_course_requests/{requestId}": {
+      "schema": "PaymentRequest",
+      "description": "Crash course purchase requests verification queue"
+    },
+    "/crash_course_access/{userEmail}": {
+      "description": "Crash course access entitlements for students"
+    },
+    "/crash_course_pdfs/{pdfId}": {
+      "description": "Crash course PDF study materials"
+    },
+    "/video_interactions/{interactionId}": {
+      "description": "User video likes, saved bookmarks, and resume playback progress"
+    },
+    "/push_subscriptions/{subId}": {
+      "description": "Web Push VAPID device subscriptions for students and admin"
+    },
+    "/push_notification_logs/{logId}": {
+      "description": "Sent push notification delivery history and error logs"
+    }
+  }
+}
+
