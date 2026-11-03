@@ -33,7 +33,6 @@ import { CrashCourseView } from './components/CrashCourseView';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminDailyTestPage } from './components/AdminDailyTestPage';
 import { StudentDailyTestPage } from './components/StudentDailyTestPage';
-import { triggerAd } from './utils/adManager';
 import { GlobalAdController } from './components/AdsterraBanner';
 import { recordAppDownload, syncUserIdentityWithDownload } from './services/downloadTracker';
 
@@ -227,10 +226,66 @@ function MainApp() {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [activeTab, selectedSubject]);
 
+  // Native Android and browser back-button handling
+  React.useEffect(() => {
+    const handlePopState = () => {
+      // 1. If any modal or drawer is open, close it cleanly first
+      if (showDrawer) {
+        setShowDrawer(false);
+        return;
+      }
+      if (showNotifications) {
+        setShowNotifications(false);
+        return;
+      }
+      if (showVipModal) {
+        setShowVipModal(false);
+        return;
+      }
+      if (showRoutine) {
+        setShowRoutine(false);
+        return;
+      }
+      if (showNcert) {
+        setShowNcert(false);
+        return;
+      }
+      if (showSocial) {
+        setShowSocial(false);
+        return;
+      }
+      if (showGmailAuth) {
+        setShowGmailAuth(false);
+        return;
+      }
+
+      // 2. If inside a subject explorer, return to home view
+      if (selectedSubject) {
+        setSelectedSubject(null);
+        return;
+      }
+
+      // 3. If in a sub-tab, return to home tab
+      if (activeTab !== 'home') {
+        setActiveTab('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [
+    showDrawer,
+    showNotifications,
+    showVipModal,
+    showRoutine,
+    showNcert,
+    showSocial,
+    showGmailAuth,
+    selectedSubject,
+    activeTab
+  ]);
+
   const handleTabChange = (tab: string) => {
-    if (tab !== 'admin') {
-      triggerAd(`tab_${tab}`);
-    }
     if (tab === activeTab) {
       // If clicking current active tab, smoothly scroll back to top of screen
       mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -246,7 +301,7 @@ function MainApp() {
           : tab === 'admin_daily_test' ? '/admin/daily-test' 
           : tab === 'daily_test' ? '/daily-test' 
           : '/';
-        window.history.pushState({}, '', path);
+        window.history.pushState({ tab, selectedSubject: null }, '', path);
       } catch (e) {}
       mainScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -318,21 +373,11 @@ function MainApp() {
       <div className="w-full bg-[#FFF4D6] min-h-screen flex flex-col relative overflow-x-hidden">
         {/* Top Header Bar with Hamburger Menu & Notifications */}
         <MobileTopBar
-          onOpenDrawer={() => {
-            triggerAd('top_drawer_icon');
-            setShowDrawer(true);
-          }}
-          onOpenNotifications={() => {
-            triggerAd('top_notifications_icon');
-            setShowNotifications(true);
-          }}
-          onOpenVip={() => {
-            triggerAd('top_vip_icon');
-            setShowVipModal(true);
-          }}
+          onOpenDrawer={() => setShowDrawer(true)}
+          onOpenNotifications={() => setShowNotifications(true)}
+          onOpenVip={() => setShowVipModal(true)}
           onOpenAdmin={handleAdminClick}
           onOpenGmailAuth={() => {
-            triggerAd('top_gmail_icon');
             if (!user) {
               handleTabChange('profile');
             } else {
@@ -348,17 +393,10 @@ function MainApp() {
           isOpen={showDrawer}
           onClose={() => setShowDrawer(false)}
           onNavigate={(view, extra) => {
-            if (view !== 'admin') {
-              triggerAd(`drawer_${view}`);
-            }
             handleDrawerNavigate(view, extra);
           }}
-          onOpenVip={() => {
-            triggerAd('drawer_vip');
-            setShowVipModal(true);
-          }}
+          onOpenVip={() => setShowVipModal(true)}
           onOpenGmailAuth={() => {
-            triggerAd('drawer_gmail');
             if (!user) {
               handleTabChange('profile');
             } else {
@@ -372,15 +410,11 @@ function MainApp() {
           {activeTab === 'home' && (
             <HomeScreen 
               onSelect={(id: string) => { 
-                triggerAd(`subject_${id}`);
                 setSelectedSubject(id); 
                 setActiveTab('explorer'); 
               }} 
               onNavigateTab={handleTabChange}
-              onOpenNotifications={() => {
-                triggerAd('home_notifications_bar');
-                setShowNotifications(true);
-              }}
+              onOpenNotifications={() => setShowNotifications(true)}
             />
           )}
 

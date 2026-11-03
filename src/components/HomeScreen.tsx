@@ -25,7 +25,6 @@ import { ClassRoutineModal } from './ClassRoutineModal';
 import { NcertBooksModal } from './NcertBooksModal';
 import { SocialMediaModal } from './SocialMediaModal';
 import { AdsterraBanner } from './AdsterraBanner';
-import { triggerAd } from '../utils/adManager';
 import { getDevicePushState } from '../services/pushNotificationService';
 
 interface HomeScreenProps {
@@ -47,8 +46,6 @@ export function HomeScreen({ onSelect, onOpenSubject, onNavigateTab, onOpenNotif
   const pushState = getDevicePushState();
 
   const handleFeatureNavigate = (id: string) => {
-    triggerAd();
-
     switch (id) {
       case 'course':
         if (onNavigateTab) {
@@ -74,7 +71,6 @@ export function HomeScreen({ onSelect, onOpenSubject, onNavigateTab, onOpenNotif
   };
 
   const handleOpenSubjectCard = (subjectId: string) => {
-    triggerAd();
     handleSelectSubject(subjectId);
   };
 

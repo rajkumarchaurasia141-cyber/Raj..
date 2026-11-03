@@ -35,8 +35,7 @@ export function GmailAuthModal({ isOpen, onClose, adminPrompt = false }: GmailAu
         if (Array.isArray(parsed)) return parsed.map(e => e.trim().toLowerCase());
       }
     } catch (e) {}
-    const envEmail = (import.meta.env?.VITE_MAIN_ADMIN_EMAIL || '').trim().toLowerCase();
-    return envEmail ? [envEmail] : ['rajkumarchaurasia141@gmail.com'];
+    return ['rajkumarchaurasia141@gmail.com'];
   };
   
   // Real-time checks

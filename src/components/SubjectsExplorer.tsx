@@ -15,8 +15,6 @@ import {
   BookMarked 
 } from 'lucide-react';
 
-import { triggerAd } from '../utils/adManager';
-
 export function SubjectsExplorer({ subjectId, onBack }: any) {
   const { subjects } = useData();
   const { isPaid, isVIP } = useAuth();
@@ -25,24 +23,7 @@ export function SubjectsExplorer({ subjectId, onBack }: any) {
   const [showPaidTest, setShowPaidTest] = useState(false);
   const [activeTab, setActiveTab] = useState<'intro' | 'notes' | 'tips' | 'qna' | 'mcq'>('intro');
 
-  // Course section ad timers: Timer 1 at 90s (1-2 min), Timer 2 at 360s (5-10 min)
-  React.useEffect(() => {
-    const timer1 = setTimeout(() => {
-      triggerAd();
-    }, 90000); // 1.5 minutes
-
-    const timer2 = setTimeout(() => {
-      triggerAd();
-    }, 360000); // 6 minutes
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, [subjectId, selectedCh]);
-
   const handleBack = () => {
-    triggerAd();
     if (onBack) onBack();
   };
 

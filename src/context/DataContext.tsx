@@ -899,10 +899,14 @@ export const DataProvider = ({ children }: any) => {
         setSubjects(getMergedSubjects(baseSub));
 
         // Paid Notes
-        setPaidNotes(data.paid_notes || defaultPaidPdfNotes);
+        if (Array.isArray(data.paid_notes) && data.paid_notes.length > 0) {
+          setPaidNotes(data.paid_notes);
+        }
 
         // PYQs
-        setPyqs(data.pyqs || defaultPyqs);
+        if (Array.isArray(data.pyqs) && data.pyqs.length > 0) {
+          setPyqs(data.pyqs);
+        }
 
         // Live Classes (Keep ONLY Admin-added YouTube/video items, purge AI Tech Video Studio items)
         const staticLive = (data.live_classes || []).filter((c: any) => !isAiStudioLectureItem(c));
@@ -933,25 +937,37 @@ export const DataProvider = ({ children }: any) => {
         });
 
         // Daily Quizzes
-        setDailyQuizzes(data.daily_quizzes || defaultDailyQuizzes);
+        if (Array.isArray(data.daily_quizzes) && data.daily_quizzes.length > 0) {
+          setDailyQuizzes(data.daily_quizzes);
+        }
 
         // Leaderboard
-        setLeaderboard(data.leaderboard || defaultLeaderboard);
+        if (Array.isArray(data.leaderboard) && data.leaderboard.length > 0) {
+          setLeaderboard(data.leaderboard);
+        }
 
         // Routine
-        setRoutine(data.routine || defaultRoutine);
+        if (Array.isArray(data.routine) && data.routine.length > 0) {
+          setRoutine(data.routine);
+        }
 
         // Quotes
-        setMotivationalQuotes(data.motivational_quotes || defaultQuotes);
+        if (Array.isArray(data.motivational_quotes) && data.motivational_quotes.length > 0) {
+          setMotivationalQuotes(data.motivational_quotes);
+        }
 
         // Notifications
-        setNotifications(data.notifications || defaultNotifications);
+        if (Array.isArray(data.notifications) && data.notifications.length > 0) {
+          setNotifications(data.notifications);
+        }
 
         // App Config
-        setAppConfig(data.app_config || defaultAppConfig);
+        if (data.app_config && typeof data.app_config === 'object' && Object.keys(data.app_config).length > 0) {
+          setAppConfig((prev) => ({ ...defaultAppConfig, ...prev, ...data.app_config }));
+        }
 
-      } catch (e) {
-        console.error("Failed to load static data:", e);
+      } catch {
+        // Fallback to built-in default state silently
       } finally {
         setLoading(false);
       }

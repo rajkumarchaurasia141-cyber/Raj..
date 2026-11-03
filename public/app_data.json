@@ -348,7 +348,9 @@
       "description": "बिहार बोर्ड 10वीं संस्कृत परीक्षा में 7 अंकों का अनुच्छेद लेखन आसानी से कैसे करें।",
       "youtubeUrl": "https://www.youtube.com/watch?v=iXxCoEvsxks",
       "playbackUrl": "https://www.youtube.com/watch?v=iXxCoEvsxks",
-      "scheduledAt": "रिकॉर्डेड क्लास"
+      "scheduledAt": "रिकॉर्डेड क्लास",
+      "publishedAt": "2026-09-22T13:47:10.099Z",
+      "isVip": false
     },
     {
       "id": "live_1790081975511",
@@ -365,7 +367,9 @@
       "teacherName": "राज सर • BSEB GURU",
       "subjectName": "हिन्दी",
       "scheduledAt": "रिकॉर्डेड क्लास",
-      "title": "हिंदी के संपूर्ण अध्याय के लेखक के नाम याद करने की ट्रिक"
+      "title": "हिंदी के संपूर्ण अध्याय के लेखक के नाम याद करने की ट्रिक",
+      "publishedAt": "2026-09-22T12:59:35.516Z",
+      "isVip": false
     },
     {
       "id": "live_1790075722375",
@@ -382,7 +386,9 @@
       "createdAt": "2026-09-22T11:15:22.375Z",
       "subjectName": "सामान्य",
       "scheduledAt": "रिकॉर्डेड क्लास",
-      "title": "BSEB Class 10 Topper Motivation & Comeback Strategy"
+      "title": "BSEB Class 10 Topper Motivation & Comeback Strategy",
+      "publishedAt": "2026-09-22T11:15:22.375Z",
+      "isVip": false
     },
     {
       "id": "live_1790066678880",
@@ -400,7 +406,9 @@
       "youtubeUrl": "https://www.youtube.com/watch?v=8ofwkGs2nYE",
       "playbackUrl": "https://www.youtube.com/watch?v=8ofwkGs2nYE",
       "subjectName": "हिन्दी",
-      "chapterName": "वर्णिका पाठ 5: धरती कब तक घूमेगी"
+      "chapterName": "वर्णिका पाठ 5: धरती कब तक घूमेगी",
+      "publishedAt": "2026-09-22T08:44:38.880Z",
+      "isVip": false
     },
     {
       "id": "live_1790046453396",
@@ -418,7 +426,9 @@
       "teacherName": "राज सर",
       "youtubeUrl": "https://www.youtube.com/watch?v=rRLL5Tw1gV8",
       "playbackUrl": "https://www.youtube.com/watch?v=rRLL5Tw1gV8",
-      "description": "बिहार बोर्ड कक्षा 10वीं हिंदी वर्णिका पाठ 4 नगर (सुजाता) संपूर्ण क्लास।"
+      "description": "बिहार बोर्ड कक्षा 10वीं हिंदी वर्णिका पाठ 4 नगर (सुजाता) संपूर्ण क्लास।",
+      "publishedAt": "2026-09-22T03:07:33.399Z",
+      "isVip": false
     },
     {
       "id": "live_1790033137415",
@@ -436,7 +446,9 @@
       "createdAt": "2026-09-21T23:25:37.415Z",
       "title": "वर्णिका पाठ 3 - माँ (संपूर्ण व्याख्या व VVI प्रश्न)",
       "description": "बिहार बोर्ड कक्षा 10वीं वर्णिका भाग-2 पाठ 3 माँ कहानी का संपूर्ण सारांश।",
-      "teacherName": "राज सर"
+      "teacherName": "राज सर",
+      "publishedAt": "2026-09-21T23:25:37.415Z",
+      "isVip": false
     },
     {
       "id": "live_1790004170075",
@@ -454,7 +466,9 @@
       "description": "कक्षा 10वीं हिंदी वर्णिका अध्याय 2 ढहते विश्वास की संपूर्ण व्याख्या और VVI प्रश्न।",
       "youtubeUrl": "https://www.youtube.com/watch?v=l209nWSzih4",
       "playbackUrl": "https://www.youtube.com/watch?v=l209nWSzih4",
-      "teacherName": "राज सर"
+      "teacherName": "राज सर",
+      "publishedAt": "2026-09-21T15:22:50.075Z",
+      "isVip": false
     },
     {
       "id": "live_1789997398467",
@@ -472,7 +486,9 @@
       "title": "वर्णिका पाठ 1 - दही वाली मंगम्मा (संपूर्ण क्लास)",
       "scheduledAt": "रिकॉर्डेड क्लास",
       "youtubeUrl": "https://www.youtube.com/watch?v=0qJWe4D-96A",
-      "playbackUrl": "https://www.youtube.com/watch?v=0qJWe4D-96A"
+      "playbackUrl": "https://www.youtube.com/watch?v=0qJWe4D-96A",
+      "publishedAt": "2026-09-21T13:29:58.468Z",
+      "isVip": false
     },
     {
       "id": "live_1789907372340",
@@ -482,15 +498,17 @@
       "category": "Classes",
       "libraryCategory": "Chapter-wise Lectures",
       "contentType": "recorded",
-      "youtubeUrl": "https://www.youtube.com/watch?v=qGIcGOIpISU",
-      "playbackUrl": "https://www.youtube.com/watch?v=qGIcGOIpISU",
+      "youtubeUrl": "https://www.youtube.com/watch?v=xY8iG5H9qM4",
+      "playbackUrl": "https://www.youtube.com/watch?v=xY8iG5H9qM4",
       "createdAt": "2026-09-20T12:29:32.343Z",
       "scheduledAt": "रिकॉर्डेड क्लास",
       "title": "संस्कृत अध्याय 1 - मङ्गलम् (संपूर्ण व्याख्या व प्रश्नोत्तर)",
       "subjectName": "संस्कृत",
       "chapterName": "पाठ 1: मङ्गलम्",
       "teacherName": "राज सर",
-      "description": "बिहार बोर्ड कक्षा 10वीं संस्कृत (पीयूषम् भाग-2) अध्याय 1 मङ्गलम् के सभी 5 मंत्रों का हिंदी अर्थ और महत्वपूर्ण बोर्ड प्रश्नोत्तर।"
+      "description": "बिहार बोर्ड कक्षा 10वीं संस्कृत (पीयूषम् भाग-2) अध्याय 1 मङ्गलम् के सभी 5 मंत्रों का हिंदी अर्थ और महत्वपूर्ण बोर्ड प्रश्नोत्तर।",
+      "publishedAt": "2026-09-20T12:29:32.343Z",
+      "isVip": false
     }
   ],
   "daily_quizzes": [

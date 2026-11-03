@@ -63,7 +63,7 @@ import {
   DEFAULT_BATCH_STUDENTS
 } from '../services/attendanceTracker';
 import { AdsterraBanner } from './AdsterraBanner';
-import { triggerAd } from '../utils/adManager';
+import { setStudyOrTestMode } from '../utils/adManager';
 
 interface LiveClassesViewProps {
   onOpenVip: () => void;
@@ -578,6 +578,16 @@ export function LiveClassesView({ onOpenVip }: LiveClassesViewProps) {
   const [menuOpenClass, setMenuOpenClass] = useState<LiveClass | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
 
+  // Shield active video lecture viewing so popup ads never interrupt students watching a class
+  useEffect(() => {
+    if (selectedClass) {
+      setStudyOrTestMode(true, 'live_video_player');
+    } else {
+      setStudyOrTestMode(false);
+    }
+    return () => setStudyOrTestMode(false);
+  }, [selectedClass]);
+
   // Broken image fallback tracker
   const [failedThumbnails, setFailedThumbnails] = useState<Record<string, boolean>>({});
 
@@ -735,7 +745,6 @@ export function LiveClassesView({ onOpenVip }: LiveClassesViewProps) {
   // Open a video in the player page without triggering background Firestore writes that re-render the player
   const handleWatchClass = useCallback(
     (cls: LiveClass) => {
-      triggerAd("live_video_click");
       if (!userCanAccess(cls)) {
         setLockedClassPrompt(cls);
         return;

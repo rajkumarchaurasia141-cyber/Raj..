@@ -1,7 +1,8 @@
-const CACHE_NAME = 'bseb-guru-v5';
+const CACHE_NAME = 'bseb-guru-v6';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
+  '/app_data.json',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
@@ -40,11 +41,17 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(async () => {
-        const cached = await caches.match(event.request);
+        const cached = await caches.match(event.request, { ignoreSearch: true });
         if (cached) return cached;
         if (event.request.mode === 'navigate') {
           const fallback = await caches.match('/');
           if (fallback) return fallback;
+        }
+        if (event.request.url.includes('app_data.json')) {
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          });
         }
         return new Response('Network error', { status: 408, headers: { 'Content-Type': 'text/plain' } });
       })

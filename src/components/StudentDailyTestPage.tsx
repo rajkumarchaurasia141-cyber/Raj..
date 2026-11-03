@@ -9,7 +9,7 @@ import {
   Clock
 } from 'lucide-react';
 import { playSound } from '../utils/audio';
-import { triggerAd } from '../utils/adManager';
+import { setStudyOrTestMode } from '../utils/adManager';
 
 interface StudentDailyTestPageProps {
   onBack?: () => void;
@@ -480,17 +480,20 @@ export function StudentDailyTestPage({ onBack, onNavigateToAdmin }: StudentDaily
   const [answers, setAnswers] = useState<{ [qIndex: number]: number }>({});
   const [score, setScore] = useState(0);
 
-  // Ad Timer: Trigger ad after 90 seconds (1 to 2 minutes) during active test
+  // Shield active test sessions so ads NEVER interrupt students while solving tests
   React.useEffect(() => {
-    if (!activeTest) return;
-    const adTimer = setTimeout(() => {
-      triggerAd();
-    }, 90000); // 90 seconds (1.5 min)
-    return () => clearTimeout(adTimer);
+    if (activeTest) {
+      setStudyOrTestMode(true, 'daily_test');
+    } else {
+      setStudyOrTestMode(false);
+    }
+    return () => {
+      setStudyOrTestMode(false);
+    };
   }, [activeTest]);
 
   const handleExitTest = () => {
-    triggerAd();
+    setStudyOrTestMode(false);
     setActiveTest(null);
   };
 
@@ -548,13 +551,6 @@ export function StudentDailyTestPage({ onBack, onNavigateToAdmin }: StudentDaily
 
     setAnswers(prev => {
       const updated = { ...prev, [questionIndex]: optionIndex };
-      const answeredCount = Object.keys(updated).length;
-      
-      // Trigger ad at 50% progress
-      if (answeredCount === Math.floor(questions.length / 2)) {
-        triggerAd();
-      }
-
       const newScore = Object.entries(updated).reduce((acc, [qIdx, selOpt]) => {
         return questions[Number(qIdx)].correctIndex === selOpt ? acc + 1 : acc;
       }, 0);
@@ -743,8 +739,7 @@ export function StudentDailyTestPage({ onBack, onNavigateToAdmin }: StudentDaily
             })}
 
             {answeredCount === questions.length && (
-              <div className="bg-white rounded-2xl p-6 text-center shadow-md border-2 border-amber-400 space-y-3.5" 
-                   ref={(el) => { if(el) triggerAd(); }}>
+              <div className="bg-white rounded-2xl p-6 text-center shadow-md border-2 border-amber-400 space-y-3.5">
                 <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-2xs">
                   🏆
                 </div>

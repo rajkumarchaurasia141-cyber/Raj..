@@ -4,7 +4,7 @@ import { useData } from '../context/DataContext';
 
 export function AdminAdminsManager() {
   const { appConfig, updateSettings } = useData();
-  const envEmail = (import.meta.env?.VITE_MAIN_ADMIN_EMAIL || '').trim().toLowerCase() || 'rajkumarchaurasia141@gmail.com';
+  const envEmail = 'rajkumarchaurasia141@gmail.com';
   const [adminEmails, setAdminEmails] = useState<string[]>(
     appConfig.adminEmails && appConfig.adminEmails.length > 0 
       ? appConfig.adminEmails 
@@ -51,7 +51,7 @@ export function AdminAdminsManager() {
       setErrorMsg('कम से कम 1 मुख्य एडमिन होना अनिवार्य है!');
       return;
     }
-    const envEmailLocal = (import.meta.env?.VITE_MAIN_ADMIN_EMAIL || '').trim().toLowerCase() || 'rajkumarchaurasia141@gmail.com';
+    const envEmailLocal = 'rajkumarchaurasia141@gmail.com';
     if (emailToRemove === envEmailLocal) {
       if (!confirm('क्या आप मुख्य सुपर एडमिन ईमेल को हटाना चाहते हैं?')) return;
     }

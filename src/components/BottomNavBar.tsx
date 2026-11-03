@@ -1,6 +1,5 @@
 import React from 'react';
 import { Home, BookOpen, Radio, CheckSquare, Trophy, DownloadCloud, MessageCircle, User } from 'lucide-react';
-import { triggerAd } from '../utils/adManager';
 
 interface BottomNavBarProps {
   activeTab: string;
@@ -27,10 +26,7 @@ export function BottomNavBar({ activeTab, onTabChange }: BottomNavBarProps) {
         return (
           <button
             key={item.id}
-            onClick={() => {
-              triggerAd(`bottom_nav_${item.id}`);
-              onTabChange(item.id);
-            }}
+            onClick={() => onTabChange(item.id)}
             className={`min-w-[44px] flex-1 py-1 px-0.5 flex flex-col items-center justify-center transition-all cursor-pointer select-none relative ${
               isActive ? 'text-[#222222] font-black' : 'text-[#777777] hover:text-[#222222] font-medium'
             }`}

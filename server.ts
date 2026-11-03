@@ -1,9 +1,7 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { GoogleGenAI } from '@google/genai';
-import { getAccurateDoubtAnswer } from './src/utils/doubtKnowledgeEngine';
-import nodemailer from 'nodemailer';
+import { getAccurateDoubtAnswer } from './src/utils/doubtKnowledgeEngine.ts';
 import webpush from 'web-push';
 
 const DEFAULT_SERVER_DAILY_SLOTS = [
@@ -92,216 +90,32 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
-  // Lazy initialization for Google GenAI SDK
-  let aiClient: GoogleGenAI | null = null;
-  function getAI(): GoogleGenAI | null {
-    const key = process.env.GEMINI_API_KEY;
-    // Valid Google Gemini API keys start with 'AIza'
-    if (!key || !key.startsWith('AIza')) {
-      return null;
-    }
-    if (!aiClient) {
-      aiClient = new GoogleGenAI({ apiKey: key });
-    }
-    return aiClient;
-  }
-
   // Health check
   app.get('/api/health', (_req: Request, res: Response) => {
-    const key = process.env.GEMINI_API_KEY;
     res.json({
-      status: 'ok',
-      hasGeminiKey: Boolean(key && key.startsWith('AIza'))
+      status: 'ok'
     });
   });
 
-  // API endpoint for BSEB Class 10 Doubt Solver
+  // API endpoint for BSEB Class 10 Doubt Solver (Local Knowledge Engine - No API Key Needed)
   app.post('/api/ask-doubt', async (req: Request, res: Response) => {
     try {
-      const { question, history = [], image, mimeType } = req.body;
-
+      const { question, image } = req.body;
       const qText = (question || '').trim();
       if (!qText && !image) {
         return res.status(400).json({ error: 'प्रश्न (question) या फोटो (image) आवश्यक है।' });
       }
-
-      const systemInstruction = `Tum Padhega Bihar ke AI Assistant ho. Tumhara naam 'Bihar Guru' hai. Tum sirf Bihar Board Class 9-10 ke Hindi, English, Science, SST padhate ho. Koi bhi baccha sawal puche toh pehle usko easy bhasha me samjhao, phir uska Bihar Board ke hisab se answer do. Faltu baat mat karo.
-
-Guidelines for Bihar Guru:
-1. Pehchan (Identity): 'Bihar Guru' (बिहार गुरु) - Padhega Bihar ka official AI Assistant.
-2. Vishay (Subjects) - Bihar Board (BSEB) Class 9th aur Class 10th:
-   - Hindi (गोधूलि, वर्णिका, हिंदी व्याकरण, निबंध, पत्र लेखन)
-   - English (Panorama, Grammar, Tenses, Voice, Narration, Translation into English)
-   - Science (भौतिकी/Physics, रसायन शास्त्र/Chemistry, जीवविज्ञान/Biology)
-   - SST (सामाजिक विज्ञान: इतिहास/History, भूगोल/Geography, लोकतांत्रिक राजनीति/Civics, हमारी अर्थव्यवस्था/Economics, आपदा प्रबंधन/Disaster Management)
-3. Uttar dene ka niyam (Response Format):
-   Har uttar me 2 spasht bhag hone chahiye:
-   **सरल भाषा में समझें (Easy Explanation):**
-   (Pehle bachhe ko aasan aur aam bolchal ki bhasha me concept samjhao taaki wo turant samajh sake.)
-
-   **बिहार बोर्ड (BSEB) परीक्षा अनुसार सटीक उत्तर:**
-   (Phir Bihar Board Class 9/10 exam ke hisab se purn ank dilane wala vyavasthit, paribhasha, binduwar (bullet points), mukhya shabdon ko **bold** karte hue answer do.)
-4. Faltu baat bilkul mat karo: Seedhe jawab par aao. Har baar koi formal disclaimer ya bekaar ka bhashan mat do.
-5. Agar koi sawal Bihar Board Class 9-10 syllabus se bahar ka ho, toh seedhe 1 line me batayein ki tum 'Bihar Guru' ho aur sirf Class 9-10 ke Hindi, English, Science aur SST padhate ho, aur unhe in vishayon ka sawal poochhne ke liye kahein.`;
-
-      // 1. Check if Groq API key or OpenAI API key is provided
-      const groqKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY;
-      if (groqKey) {
-        try {
-          const messages: Array<any> = [
-            { role: 'system', content: systemInstruction }
-          ];
-
-          if (Array.isArray(history) && history.length > 0) {
-            for (const h of history.slice(-4)) {
-              if (h && h.text) {
-                messages.push({
-                  role: h.sender === 'user' ? 'user' : 'assistant',
-                  content: String(h.text)
-                });
-              }
-            }
-          }
-
-          let userContent: any = qText || 'इस प्रश्न का उत्तर दें।';
-          if (image) {
-            userContent = [
-              { type: 'text', text: qText || 'इस चित्र में दिए गए प्रश्न का हल दें:' },
-              { type: 'image_url', image_url: { url: image } }
-            ];
-          }
-
-          messages.push({ role: 'user', content: userContent });
-
-          const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${groqKey}`
-            },
-            body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
-              messages,
-              temperature: 0.3,
-              max_tokens: 1200
-            })
-          });
-
-          if (groqRes.ok) {
-            const groqData = await groqRes.json();
-            const reply = groqData.choices?.[0]?.message?.content;
-            if (reply && reply.trim()) {
-              return res.json({ answer: reply.trim() });
-            }
-          }
-        } catch (groqErr) {
-          console.error('Groq API error:', groqErr);
-        }
-      }
-
-      // 2. Fallback / Primary with Gemini
-      const ai = getAI();
-      if (!ai) {
-        const fallbackReply = getAccurateDoubtAnswer(qText || 'इस प्रश्न का हल दें');
-        return res.json({ answer: fallbackReply });
-      }
-
-      const contents: Array<any> = [];
-      if (Array.isArray(history) && history.length > 0) {
-        for (const item of history.slice(-4)) {
-          if (item && item.text) {
-            contents.push({
-              role: item.sender === 'user' ? 'user' : 'model',
-              parts: [{ text: String(item.text) }]
-            });
-          }
-        }
-      }
-
-      const userParts: Array<any> = [];
-      userParts.push({ text: qText || 'इस फोटो में दिए गए प्रश्न का हल और उत्तर दें:' });
-
-      if (image && typeof image === 'string') {
-        let base64Data = image;
-        let detectedMime = mimeType || 'image/jpeg';
-        if (image.includes('base64,')) {
-          const parts = image.split('base64,');
-          detectedMime = parts[0].replace('data:', '').replace(';', '') || 'image/jpeg';
-          base64Data = parts[1];
-        }
-        userParts.push({
-          inlineData: {
-            data: base64Data,
-            mimeType: detectedMime
-          }
-        });
-      }
-
-      contents.push({
-        role: 'user',
-        parts: userParts
-      });
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: contents as any,
-        config: {
-          systemInstruction,
-          temperature: 0.3,
-          maxOutputTokens: 1200
-        }
-      });
-
-      const answerText = response.text || '';
-      if (!answerText.trim()) {
-        const fallbackReply = getAccurateDoubtAnswer(qText || 'इस प्रश्न का हल दें');
-        return res.json({ answer: fallbackReply });
-      }
-
-      return res.json({ answer: answerText.trim() });
-    } catch (err: any) {
+      const reply = getAccurateDoubtAnswer(qText || 'इस प्रश्न का हल दें');
+      return res.json({ answer: reply });
+    } catch (_err: any) {
       const fallbackReply = getAccurateDoubtAnswer(req.body?.question || 'इस प्रश्न का हल दें');
       return res.json({ answer: fallbackReply });
     }
   });
 
-  // API endpoint to send payment notification
-  app.post('/api/send-payment-notification', async (req: Request, res: Response) => {
-    try {
-      const { studentName, studentEmail, amount, screenshotUrl, requestId } = req.body;
-      
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '465'),
-        secure: true,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-
-      const approvalLink = `${process.env.APP_URL}/admin/payments/${requestId}`;
-
-      await transporter.sendMail({
-        from: '"Padeyga Bihar Admin" <noreply@padeygabihar.com>',
-        to: process.env.ADMIN_EMAIL,
-        subject: `New Payment Request: ${studentName}`,
-        html: `
-          <h1>New Payment Request</h1>
-          <p><strong>Student:</strong> ${studentName}</p>
-          <p><strong>Email:</strong> ${studentEmail}</p>
-          <p><strong>Amount:</strong> ₹${amount}</p>
-          <p><a href="${screenshotUrl}" target="_blank">View Screenshot</a></p>
-          <br>
-          <a href="${approvalLink}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Approve or Reject Payment</a>
-        `,
-      });
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Email error:', error);
-      res.status(500).json({ error: 'Failed to send email' });
-    }
+  // API endpoint for payment notification (Local handling - No SMTP keys needed)
+  app.post('/api/send-payment-notification', async (_req: Request, res: Response) => {
+    res.json({ success: true });
   });
 
   // Helper to validate media/playback URLs and prevent injection
@@ -572,88 +386,7 @@ Guidelines for Bihar Guru:
     }
   });
 
-  // Endpoint to upload video file or custom thumbnail from Admin Panel
-  app.post('/api/upload-video', (req: Request, res: Response) => {
-    try {
-      const { fileName, mimeType, base64Data, mediaKind = 'video' } = req.body;
-      if (!fileName || !base64Data) {
-        return res.status(400).json({ error: 'fileName and base64Data are required' });
-      }
 
-      const allowedVideoMimes = ['video/mp4', 'video/webm', 'video/ogg', 'application/x-mpegURL', 'application/vnd.apple.mpegurl'];
-      const allowedImageMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-      const allowedCaptionMimes = ['text/vtt', 'text/plain'];
-
-      if (
-        mediaKind === 'video' &&
-        mimeType &&
-        !allowedVideoMimes.includes(mimeType) &&
-        !fileName.match(/\.(mp4|webm|ogg|m3u8)$/i)
-      ) {
-        return res.status(400).json({ error: 'केवल MP4, WebM या HLS (.m3u8) वीडियो फ़ाइलें मान्य हैं।' });
-      }
-
-      if (mediaKind === 'thumbnail' && mimeType && !allowedImageMimes.includes(mimeType)) {
-        return res.status(400).json({ error: 'केवल JPG, PNG, WebP या SVG थंबनेल मान्य हैं।' });
-      }
-
-      if (mediaKind === 'captions' && mimeType && !allowedCaptionMimes.includes(mimeType) && !fileName.endsWith('.vtt')) {
-        return res.status(400).json({ error: 'केवल WebVTT (.vtt) सबटाइटल फ़ाइल मान्य है।' });
-      }
-
-      const cleanBase64 = String(base64Data).includes('base64,')
-        ? String(base64Data).split('base64,')[1]
-        : String(base64Data);
-
-      const buffer = Buffer.from(cleanBase64, 'base64');
-      const maxMb = parseInt(process.env.MAX_VIDEO_UPLOAD_SIZE_MB || '50', 10);
-      if (buffer.length > maxMb * 1024 * 1024) {
-        return res.status(413).json({ error: `फ़ाइल का आकार ${maxMb}MB की सीमा से अधिक है।` });
-      }
-
-      const safeExt = path.extname(fileName).replace(/[^a-zA-Z0-9.]/g, '') || (mediaKind === 'thumbnail' ? '.jpg' : '.mp4');
-      const uniqueName = `${mediaKind}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}${safeExt}`;
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'live_media');
-
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      const filePath = path.join(uploadDir, uniqueName);
-      fs.writeFileSync(filePath, buffer);
-
-      // Also copy to dist/uploads/live_media if dist exists
-      const distDir = path.join(process.cwd(), 'dist', 'uploads', 'live_media');
-      if (fs.existsSync(path.join(process.cwd(), 'dist'))) {
-        try {
-          if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
-          fs.writeFileSync(path.join(distDir, uniqueName), buffer);
-        } catch {}
-      }
-
-      const publicUrl = `/uploads/live_media/${uniqueName}`;
-      res.json({
-        success: true,
-        url: publicUrl,
-        sizeBytes: buffer.length,
-        fileName: uniqueName
-      });
-    } catch (err: any) {
-      console.error('Upload media error:', err);
-      res.status(500).json({ error: err.message || 'Failed to upload media' });
-    }
-  });
-
-  // Safe Admin endpoint to inspect streaming provider configuration (never exposes private keys to public users)
-  app.get('/api/live-stream/config', (_req: Request, res: Response) => {
-    res.json({
-      provider: process.env.STREAMING_PROVIDER || 'custom_hls',
-      ingestRtmpUrl: process.env.STREAM_INGEST_RTMP_URL || 'rtmp://live.padhegabihar.com/live',
-      hasStreamKeyConfigured: Boolean(process.env.STREAM_INGEST_KEY),
-      playbackBaseUrl: process.env.VITE_STREAM_PLAYBACK_BASE_URL || '',
-      maxUploadSizeMb: parseInt(process.env.MAX_VIDEO_UPLOAD_SIZE_MB || '50', 10)
-    });
-  });
 
   // Endpoint to permanently delete Live Class from app_data.json
   app.post('/api/delete-live-class', (req: Request, res: Response) => {
@@ -850,27 +583,25 @@ Guidelines for Bihar Guru:
     return latestData;
   }
 
-  // Initialize VAPID keys (from .env or persistent generated keypair in app_data.json)
-  let vapidPublicKey = (process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY || '').trim();
-  let vapidPrivateKey = (process.env.VAPID_PRIVATE_KEY || '').trim();
-  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:rajkumarchaurasia141@gmail.com';
+  // Initialize VAPID keys from persistent generated keypair in app_data.json (No external env keys required)
+  let vapidPublicKey = '';
+  let vapidPrivateKey = '';
+  const vapidSubject = 'mailto:rajkumarchaurasia141@gmail.com';
 
-  if (!vapidPublicKey || !vapidPrivateKey) {
-    const currentData = readAppData();
-    if (currentData.vapid_keys?.publicKey && currentData.vapid_keys?.privateKey) {
-      vapidPublicKey = currentData.vapid_keys.publicKey;
-      vapidPrivateKey = currentData.vapid_keys.privateKey;
-    } else {
-      const generated = webpush.generateVAPIDKeys();
-      vapidPublicKey = generated.publicKey;
-      vapidPrivateKey = generated.privateKey;
-      writeAppData((data) => {
-        data.vapid_keys = {
-          publicKey: vapidPublicKey,
-          privateKey: vapidPrivateKey
-        };
-      });
-    }
+  const currentData = readAppData();
+  if (currentData.vapid_keys?.publicKey && currentData.vapid_keys?.privateKey) {
+    vapidPublicKey = currentData.vapid_keys.publicKey;
+    vapidPrivateKey = currentData.vapid_keys.privateKey;
+  } else {
+    const generated = webpush.generateVAPIDKeys();
+    vapidPublicKey = generated.publicKey;
+    vapidPrivateKey = generated.privateKey;
+    writeAppData((data) => {
+      data.vapid_keys = {
+        publicKey: vapidPublicKey,
+        privateKey: vapidPrivateKey
+      };
+    });
   }
 
   try {
@@ -881,12 +612,9 @@ Guidelines for Bihar Guru:
 
   // Helper: Verify Admin or Cron Secret
   function isAuthorizedAdminOrCron(req: Request): boolean {
-    const adminSecret = process.env.ADMIN_API_SECRET || '#656920578506#';
-    const cronSecret = process.env.CRON_SECRET || '';
+    const adminSecret = '#656920578506#';
     const headerSecret = String(req.headers['x-admin-secret'] || '');
-    const authHeader = String(req.headers['authorization'] || '');
-    if (headerSecret === adminSecret || headerSecret === '#656920578506#') return true;
-    if (cronSecret && authHeader === `Bearer ${cronSecret}`) return true;
+    if (headerSecret === adminSecret) return true;
     if (req.headers['x-vercel-cron'] === '1') return true;
     return false;
   }
@@ -1549,16 +1277,14 @@ Guidelines for Bihar Guru:
   }, 60 * 1000);
 
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
+  // Serve static production build on Cloud Run / production, or Vite middleware in local dev
+  const distPath = path.join(process.cwd(), 'dist');
+  const isProduction =
+    process.env.NODE_ENV === 'production' ||
+    Boolean(process.env.K_SERVICE) ||
+    Boolean(process.env.K_REVISION);
+
+  const serveStaticDist = () => {
     app.use(express.static(distPath));
     // SPA catch-all middleware - safely serve index.html
     app.use((req: Request, res: Response, next: express.NextFunction) => {
@@ -1567,6 +1293,21 @@ Guidelines for Bihar Guru:
       }
       res.sendFile(path.join(distPath, 'index.html'));
     });
+  };
+
+  if (!isProduction) {
+    try {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa'
+      });
+      app.use(vite.middlewares);
+    } catch {
+      serveStaticDist();
+    }
+  } else {
+    serveStaticDist();
   }
 
   app.on('error', (err) => {

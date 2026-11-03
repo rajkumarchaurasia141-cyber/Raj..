@@ -164,7 +164,6 @@ export function getYouTubeEmbedUrl(
     playsinline: '1',
     rel: '0',
     modestbranding: '1',
-    enablejsapi: '1',
     iv_load_policy: '3'
   });
 

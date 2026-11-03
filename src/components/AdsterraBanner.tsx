@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { X, Sparkles } from 'lucide-react';
-import { triggerAd, clearAdNetworkFrequencyCaps } from '../utils/adManager';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { X, Sparkles, BookOpen } from 'lucide-react';
+import { canShowPopupAd, requestPopupAd, setAdModalOpen } from '../utils/adManager';
 
 function buildAdIframeHtml(refreshSeed: number): string {
   return `<!DOCTYPE html>
@@ -13,8 +13,8 @@ function buildAdIframeHtml(refreshSeed: number): string {
       html, body {
         margin: 0;
         padding: 0;
-        width: 300px;
-        height: 250px;
+        width: 100%;
+        height: 100%;
         background: transparent;
         display: flex;
         align-items: center;
@@ -34,46 +34,54 @@ function buildAdIframeHtml(refreshSeed: number): string {
       };
     </script>
     <script type="text/javascript" src="https://bauval.org/22/5cae615bda5e362588ae0356f4e60624?t=${refreshSeed}"></script>
-    <script type="text/javascript" src="https://bauval.org/14/77d5b7efc1ac76950df3e6aa2ad18dfa?t=${refreshSeed}"></script>
   </body>
 </html>`;
 }
 
+/**
+ * Clean, non-intrusive 300x250 Banner Ad Component.
+ * - Does not block navigation or buttons.
+ * - Sized cleanly for mobile screens.
+ * - If blocked or offline, degrades gracefully without awkward empty white space.
+ */
 export function AdsterraBanner() {
   const [refreshSeed, setRefreshSeed] = useState<number>(() => Date.now());
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    // Refresh banner every 2.5 minutes (150 seconds) automatically 24/7
+    // Refresh banner every 3.5 minutes (210s) smoothly
     const interval = setInterval(() => {
-      clearAdNetworkFrequencyCaps();
       setRefreshSeed(Date.now());
-    }, 150 * 1000);
+    }, 210 * 1000);
 
-    // Also refresh whenever triggerAd is called anywhere in the app
-    const handleAdTrigger = () => {
-      setRefreshSeed(Date.now() + Math.floor(Math.random() * 10000));
-    };
-    window.addEventListener('bseb-trigger-ad', handleAdTrigger);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('bseb-trigger-ad', handleAdTrigger);
-    };
+    return () => clearInterval(interval);
   }, []);
 
+  if (hasError) {
+    return (
+      <div className="w-full flex justify-center my-3 px-4">
+        <div className="w-full max-w-[320px] p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-stone-700 text-center flex items-center justify-center gap-2">
+          <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
+          <span className="text-xs font-semibold">बिहार बोर्ड 10वीं टॉपर बनने के लिए रोज़ाना अभ्यास करें!</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full flex flex-col items-center justify-center my-3 pt-1 pb-2">
-      <span className="text-[10px] text-stone-400 font-bold tracking-widest uppercase mb-1">
+    <div className="w-full flex flex-col items-center justify-center my-4 px-2">
+      <span className="text-[10px] text-stone-400 font-bold tracking-wider uppercase mb-1 select-none">
         विज्ञापन • Advertisement
       </span>
-      <div className="w-[300px] h-[250px] bg-white rounded-2xl shadow-xs border border-[#EADBB8] flex items-center justify-center overflow-hidden">
+      <div className="w-[300px] h-[250px] max-w-full bg-white rounded-2xl shadow-xs border border-[#EADBB8] flex items-center justify-center overflow-hidden">
         <iframe
           key={refreshSeed}
-          title="Adsterra 300x250 Banner Ad"
+          title="BSEB Sponsored Banner Ad"
           srcDoc={buildAdIframeHtml(refreshSeed)}
           width="300"
           height="250"
           scrolling="no"
+          onError={() => setHasError(true)}
           style={{ width: '300px', height: '250px', border: 'none', overflow: 'hidden' }}
         />
       </div>
@@ -83,104 +91,118 @@ export function AdsterraBanner() {
 
 /**
  * GlobalAdController:
- * 1. Automatically triggers the large/full-screen & popunder/social-bar ads every 3 minutes (within the 2-5 minute window) 24/7.
- * 2. Displays a clean full-screen sponsored ad overlay when triggered by the 2-5 min timer, Live section click, or icon clicks.
+ * - Controls the Popup / Interstitial Ad System.
+ * - Displays ads strictly every 5–6 minutes (300–360 seconds).
+ * - Never shows immediately upon app startup.
+ * - Never interrupts active tests, quizzes, video lectures, or forms.
+ * - Single active popup at a time.
+ * - Prominent, unmissable close button with countdown.
+ * - Does not block the app if ad loading fails.
  */
 export function GlobalAdController() {
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [adSeed, setAdSeed] = useState(() => Date.now());
-  const [countdown, setCountdown] = useState(3);
-  const lastModalShownRef = React.useRef<number>(0);
+  const [countdown, setCountdown] = useState(4);
+  const isCheckingRef = useRef(false);
 
-  const openInterstitialModal = (force: boolean = false) => {
-    const now = Date.now();
-    // Prevent annoying double-pop within 15 seconds on rapid multi-clicks unless forced by timer
-    if (!force && now - lastModalShownRef.current < 15000) {
-      return;
-    }
-    lastModalShownRef.current = now;
-    setAdSeed(now);
-    setCountdown(3);
-    setShowInterstitial(true);
-  };
-
-  useEffect(() => {
-    // Automatic timer: runs every 3 minutes (180,000 ms) — right inside the 2 to 5 minute requirement!
-    // Also runs an initial automatic ad at 2 minutes (120,000 ms)
-    const firstTimer = setTimeout(() => {
-      triggerAd('auto_2min_timer');
-      openInterstitialModal(true);
-    }, 120 * 1000);
-
-    const recurringInterval = setInterval(() => {
-      triggerAd('auto_3min_timer');
-      openInterstitialModal(true);
-    }, 180 * 1000);
-
-    const handleUserAdTrigger = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      const source = customEvent.detail?.source || 'click';
-      // Always show full-screen ad on Live section click or timer, and on icon clicks (throttled to 20s)
-      if (source.includes('live') || source.includes('timer')) {
-        openInterstitialModal(true);
-      } else {
-        openInterstitialModal(false);
-      }
-    };
-
-    window.addEventListener('bseb-trigger-ad', handleUserAdTrigger);
-
-    return () => {
-      clearTimeout(firstTimer);
-      clearInterval(recurringInterval);
-      window.removeEventListener('bseb-trigger-ad', handleUserAdTrigger);
-    };
+  const handleClose = useCallback(() => {
+    setShowInterstitial(false);
+    setAdModalOpen(false);
   }, []);
 
+  // Keyboard Escape listener to close popup
+  useEffect(() => {
+    if (!showInterstitial) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInterstitial, handleClose]);
+
+  // Periodic timer check (every 20 seconds) to safely trigger popup ads at 5-6 min intervals
+  useEffect(() => {
+    const timerInterval = setInterval(() => {
+      if (isCheckingRef.current || showInterstitial) return;
+      if (canShowPopupAd()) {
+        requestPopupAd('auto_interval_timer');
+      }
+    }, 20 * 1000);
+
+    const onShowPopupEvent = () => {
+      setAdSeed(Date.now());
+      setCountdown(4);
+      setShowInterstitial(true);
+      setAdModalOpen(true);
+    };
+
+    window.addEventListener('bseb-show-popup-ad', onShowPopupEvent);
+
+    return () => {
+      clearInterval(timerInterval);
+      window.removeEventListener('bseb-show-popup-ad', onShowPopupEvent);
+    };
+  }, [showInterstitial]);
+
+  // Countdown timer for Skip button
   useEffect(() => {
     if (!showInterstitial) return;
     if (countdown <= 0) return;
+
     const timer = setTimeout(() => {
       setCountdown((prev) => Math.max(0, prev - 1));
     }, 1000);
+
     return () => clearTimeout(timer);
   }, [showInterstitial, countdown]);
 
   if (!showInterstitial) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 animate-fadeIn">
-      <div className="bg-[#FFFDF7] border-2 border-[#D8B45A] rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl flex flex-col">
-        {/* Top bar */}
+    <div 
+      className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 animate-fadeIn"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Sponsored Advertisement"
+    >
+      <div 
+        className="bg-[#FFFDF7] border-2 border-[#D8B45A] rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top Header Bar with clear close button */}
         <div className="bg-gradient-to-r from-[#222222] to-[#3a3220] text-white px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-[#D8B45A]" />
             <span className="text-[11px] font-black tracking-wider uppercase text-[#F8E8B5]">
-              Sponsored Ad • विज्ञापन
+              Sponsored • विज्ञापन
             </span>
           </div>
+
           <button
             type="button"
-            onClick={() => setShowInterstitial(false)}
-            className="px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 text-white text-[11px] font-black flex items-center gap-1 cursor-pointer transition"
+            onClick={handleClose}
+            aria-label="Close Advertisement"
+            className="px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition select-none active:scale-95"
           >
             {countdown > 0 ? (
               <span>बंद करें ({countdown}s)</span>
             ) : (
               <>
                 <span>Skip Ad</span>
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4 ml-0.5" />
               </>
             )}
           </button>
         </div>
 
-        {/* Ad Content Area */}
+        {/* Ad Container Box */}
         <div className="p-4 flex flex-col items-center justify-center bg-white min-h-[275px]">
-          <div className="w-[300px] h-[250px] rounded-2xl border border-[#EADBB8] overflow-hidden shadow-sm flex items-center justify-center bg-[#FFFDF7]">
+          <div className="w-[300px] h-[250px] max-w-full rounded-2xl border border-[#EADBB8] overflow-hidden shadow-xs flex items-center justify-center bg-[#FFFDF7]">
             <iframe
               key={adSeed}
-              title="Adsterra Fullscreen Sponsored Ad"
+              title="BSEB Sponsored Interstitial Ad"
               srcDoc={buildAdIframeHtml(adSeed)}
               width="300"
               height="250"
@@ -197,8 +219,8 @@ export function GlobalAdController() {
         <div className="px-4 pb-3.5 pt-1 bg-[#FFFDF7]">
           <button
             type="button"
-            onClick={() => setShowInterstitial(false)}
-            className="w-full py-2.5 bg-gradient-to-r from-[#D8B45A] to-[#c49b38] hover:opacity-95 text-[#222222] font-black text-xs rounded-xl shadow-xs cursor-pointer transition"
+            onClick={handleClose}
+            className="w-full py-2.5 bg-gradient-to-r from-[#D8B45A] to-[#c49b38] hover:opacity-95 text-[#222222] font-black text-xs rounded-xl shadow-xs cursor-pointer transition select-none active:scale-[0.99]"
           >
             आगे बढ़ें (Continue to App) →
           </button>
