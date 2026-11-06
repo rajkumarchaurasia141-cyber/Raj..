@@ -1277,12 +1277,10 @@ async function startServer() {
   }, 60 * 1000);
 
 
-  // Serve static production build on Cloud Run / production, or Vite middleware in local dev
+  // Serve static production build when NODE_ENV=production and dist/index.html exists, otherwise use Vite middleware
   const distPath = path.join(process.cwd(), 'dist');
-  const isProduction =
-    process.env.NODE_ENV === 'production' ||
-    Boolean(process.env.K_SERVICE) ||
-    Boolean(process.env.K_REVISION);
+  const distIndexHtml = path.join(distPath, 'index.html');
+  const isProduction = process.env.NODE_ENV === 'production' && fs.existsSync(distIndexHtml);
 
   const serveStaticDist = () => {
     app.use(express.static(distPath));
@@ -1291,7 +1289,11 @@ async function startServer() {
       if (req.path.startsWith('/api')) {
         return next();
       }
-      res.sendFile(path.join(distPath, 'index.html'));
+      if (fs.existsSync(distIndexHtml)) {
+        res.sendFile(distIndexHtml);
+      } else {
+        res.status(503).send('Application is starting up, please refresh in a moment.');
+      }
     });
   };
 
