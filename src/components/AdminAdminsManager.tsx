@@ -87,7 +87,7 @@ export function AdminAdminsManager() {
         {/* Add Admin Form */}
         <form onSubmit={handleAddAdmin} className="space-y-3 border-b border-slate-100 pb-6">
           <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-            <UserPlus className="w-4 h-4 text-amber-600" /> नया एडमिन ईमेल (Google Login Email) जोड़ें:
+            <UserPlus className="w-4 h-4 text-amber-600" /> नया एडमिन ईमेल जोड़ें:
           </label>
           <div className="flex gap-2">
             <div className="relative flex-1">

@@ -32,11 +32,10 @@ interface AppDrawerProps {
   onClose: () => void;
   onNavigate: (view: string, extra?: any) => void;
   onOpenVip: () => void;
-  onOpenGmailAuth?: () => void;
 }
 
-export function AppDrawer({ isOpen, onClose, onNavigate, onOpenVip, onOpenGmailAuth }: AppDrawerProps) {
-  const { user, isAdmin, isVIP, vipDetails, logout } = useAuth();
+export function AppDrawer({ isOpen, onClose, onNavigate, onOpenVip }: AppDrawerProps) {
+  const { user, isAdmin, isVIP, vipDetails } = useAuth();
   const { appConfig, updateSettings } = useData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -188,19 +187,6 @@ export function AppDrawer({ isOpen, onClose, onNavigate, onOpenVip, onOpenGmailA
             </div>
           )}
 
-          {/* Quick Gmail Auth button if not identified or if wants to switch */}
-          {!isAdmin && onOpenGmailAuth && (
-            <button
-              onClick={() => {
-                onClose();
-                onOpenGmailAuth();
-              }}
-              className="mt-3 w-full py-1.5 px-3 bg-white/15 hover:bg-white/25 text-amber-200 border border-amber-300/40 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Mail className="w-3.5 h-3.5 text-amber-300" />
-              <span>{user?.email ? 'जीमेल बदलें' : 'जीमेल से पहचानें (Profile)'}</span>
-            </button>
-          )}
         </div>
 
         {/* Navigation Items */}
@@ -425,26 +411,9 @@ export function AppDrawer({ isOpen, onClose, onNavigate, onOpenVip, onOpenGmailA
             <PhoneCall className="w-3.5 h-3.5 text-red-600" />
             <span>हेल्पलाइन: {appConfig.whatsappNumber || appConfig.helplineNumber || '9241511070'}</span>
           </button>
-          {user?.email ? (
-            <button 
-              onClick={logout}
-              className="flex items-center gap-1.5 text-rose-600 hover:text-rose-800 font-bold cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>लॉगआउट</span>
-            </button>
-          ) : (
-            <button 
-              onClick={() => {
-                onClose();
-                if (onOpenGmailAuth) onOpenGmailAuth();
-              }}
-              className="flex items-center gap-1.5 text-red-700 hover:text-red-900 font-bold cursor-pointer"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>जीमेल पहचान</span>
-            </button>
-          )}
+          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+            100% मुफ़्त स्टडी मोड
+          </span>
         </div>
       </div>
     </div>

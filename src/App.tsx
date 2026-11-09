@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
-import { GmailAuthModal } from './components/GmailAuthModal';
 import { HomeScreen } from './components/HomeScreen';
 import { SubjectsExplorer } from './components/SubjectsExplorer';
 import { AdminPanel } from './components/AdminPanel';
@@ -30,7 +29,6 @@ import { AiTeacherStudioView } from './components/AiTeacherStudioView';
 import { CartoonStudioView } from './components/CartoonStudioView';
 import { PyqView } from './components/PyqView';
 import { CrashCourseView } from './components/CrashCourseView';
-import { LoginScreen } from './components/LoginScreen';
 import { AdminDailyTestPage } from './components/AdminDailyTestPage';
 import { StudentDailyTestPage } from './components/StudentDailyTestPage';
 import { GlobalAdController } from './components/AdsterraBanner';
@@ -140,9 +138,13 @@ function MainApp() {
   const [showRoutine, setShowRoutine] = useState(false);
   const [showSocial, setShowSocial] = useState(false);
   const [showNcert, setShowNcert] = useState(false);
-  const [showGmailAuth, setShowGmailAuth] = useState(false);
-
-  const [adminVerified, setAdminVerified] = useState(false);
+  const [adminVerified, setAdminVerified] = useState(() => {
+    try {
+      return localStorage.getItem('bseb_admin_verified') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [adminPasswordError, setAdminPasswordError] = useState('');
 
@@ -254,11 +256,6 @@ function MainApp() {
         setShowSocial(false);
         return;
       }
-      if (showGmailAuth) {
-        setShowGmailAuth(false);
-        return;
-      }
-
       // 2. If inside a subject explorer, return to home view
       if (selectedSubject) {
         setSelectedSubject(null);
@@ -280,7 +277,6 @@ function MainApp() {
     showRoutine,
     showNcert,
     showSocial,
-    showGmailAuth,
     selectedSubject,
     activeTab
   ]);
@@ -377,13 +373,6 @@ function MainApp() {
           onOpenNotifications={() => setShowNotifications(true)}
           onOpenVip={() => setShowVipModal(true)}
           onOpenAdmin={handleAdminClick}
-          onOpenGmailAuth={() => {
-            if (!user) {
-              handleTabChange('profile');
-            } else {
-              setShowGmailAuth(true);
-            }
-          }}
           onGoHome={() => handleTabChange('home')}
           unreadCount={2}
         />
@@ -396,13 +385,6 @@ function MainApp() {
             handleDrawerNavigate(view, extra);
           }}
           onOpenVip={() => setShowVipModal(true)}
-          onOpenGmailAuth={() => {
-            if (!user) {
-              handleTabChange('profile');
-            } else {
-              setShowGmailAuth(true);
-            }
-          }}
         />
 
         {/* Main Content Area */}
@@ -475,7 +457,7 @@ function MainApp() {
 
           {activeTab === 'admin_daily_test' && (
             <AdminDailyTestPage 
-              onBack={() => handleTabChange(isAdmin ? 'admin' : 'home')}
+              onBack={() => handleTabChange(isEffectiveAdmin ? 'admin' : 'home')}
               onNavigateToStudent={() => handleTabChange('daily_test')}
             />
           )}
@@ -501,18 +483,13 @@ function MainApp() {
           )}
 
           {activeTab === 'profile' && (
-            !user ? (
-              <LoginScreen onBack={() => handleTabChange('home')} />
-            ) : (
-              <ProfileView
-                onOpenVip={() => setShowVipModal(true)}
-                onOpenRoutine={() => setShowRoutine(true)}
-                onOpenSocial={() => setShowSocial(true)}
-                onOpenAdmin={() => setActiveTab('admin')}
-                onOpenCourse={() => setActiveTab('my_courses')}
-                onOpenGmailAuth={() => setShowGmailAuth(true)}
-              />
-            )
+            <ProfileView
+              onOpenVip={() => setShowVipModal(true)}
+              onOpenRoutine={() => setShowRoutine(true)}
+              onOpenSocial={() => setShowSocial(true)}
+              onOpenAdmin={() => setActiveTab('admin')}
+              onOpenCourse={() => setActiveTab('my_courses')}
+            />
           )}
 
           {activeTab === 'explorer' && selectedSubject && (
@@ -525,24 +502,21 @@ function MainApp() {
             />
           )}
 
-          {activeTab === 'admin' && isAdmin && adminVerified && (
+          {activeTab === 'admin' && adminVerified && (
             <AdminPanel onBack={() => setActiveTab('home')} />
           )}
 
-          {activeTab === 'admin' && isAdmin && !adminVerified && (
+          {activeTab === 'admin' && !adminVerified && (
             <div className="p-8 text-center max-w-md mx-auto my-12 bg-white rounded-3xl border border-stone-200 shadow-xl space-y-5">
               <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold animate-pulse">
                 🔑
               </div>
               
               <div className="space-y-1">
-                <h2 className="text-xl font-black text-stone-900 tracking-tight">Enter admin secret password</h2>
+                <h2 className="text-xl font-black text-stone-900 tracking-tight">एडमिन पैनल सुरक्षा पासवर्ड</h2>
                 <p className="text-stone-500 text-xs font-semibold">
                   एडमिन पैनल सुरक्षा के लिए कृपया सीक्रेट पासवर्ड दर्ज करें
                 </p>
-                <div className="p-2 bg-emerald-50 border border-emerald-100 rounded-xl mt-2 text-[11px] text-emerald-800 font-bold">
-                  पहचान स्वीकृत: {user?.email || 'राजकुमार (Direct)'}
-                </div>
               </div>
 
               <form 
@@ -550,9 +524,11 @@ function MainApp() {
                   e.preventDefault();
                   if (checkAdminSecret(adminPasswordInput)) {
                     setAdminVerified(true);
+                    try {
+                      localStorage.setItem('bseb_admin_verified', 'true');
+                    } catch {}
                     setAdminPasswordError('');
                   } else {
-                    alert("Galat Password");
                     setAdminPasswordError('गलत पासवर्ड! कृपया पुनः प्रयास करें।');
                   }
                 }}
@@ -611,41 +587,6 @@ function MainApp() {
             <PrivacyPolicyView onBack={() => setActiveTab('home')} />
           )}
 
-          {activeTab === 'admin' && !isAdmin && (
-            <div className="p-8 text-center max-w-md mx-auto my-12 bg-white rounded-3xl border border-stone-200 shadow-xl space-y-5">
-              <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
-                ⚠️
-              </div>
-              
-              <div className="space-y-2">
-                <h2 className="text-xl font-black text-stone-900 tracking-tight">अनधिकृत प्रवेश (Restricted Access)</h2>
-                <p className="text-stone-500 text-xs font-semibold leading-relaxed">
-                  यह अनुभाग केवल राजकुमार सर (Admin) के लिए सुरक्षित है। आपकी जीमेल आईडी <b>{user?.email || 'Guest / Not Logged In'}</b> को एडमिन का अधिकार प्राप्त नहीं है।
-                </p>
-                <p className="text-red-600 text-xs font-black">
-                  कृपया प्रोफाइल (Profile) में जाकर सही एडमिन जीमेल आईडी से लॉगिन करें।
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => handleTabChange('profile')}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl shadow-md transition-all cursor-pointer text-xs"
-                >
-                  👤 प्रोफाइल में जाकर लॉगिन करें
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('home')}
-                  className="w-full bg-stone-900 hover:bg-black text-white font-black py-3 rounded-xl shadow-md transition-all cursor-pointer text-xs"
-                >
-                  ← मुख्य पृष्ठ (Home Screen) पर वापस जाएँ
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* App Footer with AdSense Pages Links */}
           <Footer onNavigate={handleTabChange} />
         </main>
@@ -685,10 +626,7 @@ function MainApp() {
             }}
           />
         )}
-        <GmailAuthModal 
-          isOpen={showGmailAuth} 
-          onClose={() => setShowGmailAuth(false)} 
-        />
+
         <InstallAppBanner />
         <GlobalAdController />
       </div>

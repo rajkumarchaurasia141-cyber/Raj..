@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Bell, Crown, ShieldCheck, Mail } from 'lucide-react';
+import { Menu, Bell, Crown, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AppLogo } from './AppLogo';
 
@@ -8,7 +8,6 @@ interface MobileTopBarProps {
   onOpenNotifications: () => void;
   onOpenVip: () => void;
   onOpenAdmin: () => void;
-  onOpenGmailAuth?: () => void;
   onGoHome?: () => void;
   unreadCount?: number;
 }
@@ -18,11 +17,10 @@ export function MobileTopBar({
   onOpenNotifications,
   onOpenVip,
   onOpenAdmin,
-  onOpenGmailAuth,
   onGoHome,
   unreadCount = 2
 }: MobileTopBarProps) {
-  const { isVIP, isAdmin, vipDetails, user } = useAuth();
+  const { isVIP, isAdmin, vipDetails } = useAuth();
   const daysLeft = vipDetails?.daysRemaining;
 
   return (

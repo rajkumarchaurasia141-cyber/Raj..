@@ -3,23 +3,25 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: any) => {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(() => {
+  const [user, setUser] = useState<{ name: string; email: string }>(() => {
     try {
       const saved = localStorage.getItem('bseb_user');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.email) {
+        if (parsed && parsed.name) {
           return parsed;
         }
       }
     } catch (e) {
       console.warn("Failed to parse cached user:", e);
     }
-    return null;
+    return { name: 'BSEB GURU विद्यार्थी', email: 'student@bsebguru.app' };
   });
 
   const cleanUserEmail = user?.email?.trim().toLowerCase() || '';
-  const isAdmin = cleanUserEmail === 'rajkumarchaurasia143@gmail.com' || cleanUserEmail === 'rajkumarchaurasia141@gmail.com';
+  const isAdmin = cleanUserEmail === 'rajkumarchaurasia143@gmail.com' || 
+                  cleanUserEmail === 'rajkumarchaurasia141@gmail.com' ||
+                  (typeof window !== 'undefined' && localStorage.getItem('bseb_admin_verified') === 'true');
 
   // Check unlock status from localStorage or if user is admin
   const [unlockedCrashCourses, setUnlockedCrashCourses] = useState<Record<string, boolean>>(() => {
@@ -45,26 +47,17 @@ export const AuthProvider = ({ children }: any) => {
 
   const vipDetails = {
     isVip: isVIP,
-    plan: isVIP ? 'premium_active' : 'free',
-    planDurationText: isVIP ? 'VIP Full Access (सक्रिय)' : 'फ्री वर्शन (कोर्स लॉक)',
+    plan: 'premium_active',
+    planDurationText: 'VIP Full Access (सक्रिय)',
     isExpired: false,
-    daysRemaining: isVIP ? 365 : 0,
-    formattedExpiry: isVIP ? 'सक्रिय' : 'अपूर्ण'
+    daysRemaining: 365,
+    formattedExpiry: 'सक्रिय'
   };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('bseb_user');
-      if (saved && !user) {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.email) {
-          setUser(parsed);
-        }
-      }
-    } catch (e) {}
     setLoading(false);
   }, []);
 
@@ -98,48 +91,25 @@ export const AuthProvider = ({ children }: any) => {
     } catch {}
   };
 
+  // Safe dummy functions for backward compatibility without login UI
   const login = async (name: string, email: string) => {
-    setError(null);
-    const cleanName = name.trim();
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!cleanName) {
-      setError('कृपया अपना नाम दर्ज करें।');
-      return false;
-    }
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      setError('कृपया एक मान्य ईमेल (Gmail) दर्ज करें।');
-      return false;
-    }
-
+    const cleanName = (name || 'BSEB GURU विद्यार्थी').trim();
+    const cleanEmail = (email || 'student@bsebguru.app').trim().toLowerCase();
     const userData = { name: cleanName, email: cleanEmail };
-
+    setUser(userData);
     try {
       localStorage.setItem('bseb_user', JSON.stringify(userData));
-    } catch (e) {
-      console.warn("LocalStorage save notice:", e);
-    }
-
-    setUser(userData);
-
-    try {
-      const storedStudents = JSON.parse(localStorage.getItem('bseb_registered_students') || '{}');
-      storedStudents[cleanEmail] = {
-        id: cleanEmail,
-        name: cleanName,
-        email: cleanEmail,
-        lastLogin: new Date().toISOString()
-      };
-      localStorage.setItem('bseb_registered_students', JSON.stringify(storedStudents));
     } catch {}
-
     return true;
   };
 
   const logout = () => {
-    localStorage.removeItem('bseb_user');
-    setUser(null);
-    setError(null);
+    const defaultUser = { name: 'BSEB GURU विद्यार्थी', email: 'student@bsebguru.app' };
+    setUser(defaultUser);
+    try {
+      localStorage.setItem('bseb_user', JSON.stringify(defaultUser));
+      localStorage.removeItem('bseb_admin_verified');
+    } catch {}
   };
 
   return (
@@ -152,7 +122,7 @@ export const AuthProvider = ({ children }: any) => {
       hasCrashCourse, 
       hasFullCourse, 
       unlockUserCrashCourse, 
-      unlockUserFullCourse,
+      unlockUserFullCourse, 
       lockUserCrashCourse, 
       vipDetails, 
       loading, 

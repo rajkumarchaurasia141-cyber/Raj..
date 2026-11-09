@@ -27,7 +27,6 @@ interface ProfileViewProps {
   onOpenSocial: () => void;
   onOpenAdmin: () => void;
   onOpenCourse: () => void;
-  onOpenGmailAuth?: () => void;
 }
 
 export function ProfileView({
@@ -35,10 +34,9 @@ export function ProfileView({
   onOpenRoutine,
   onOpenSocial,
   onOpenAdmin,
-  onOpenCourse,
-  onOpenGmailAuth
+  onOpenCourse
 }: ProfileViewProps) {
-  const { user, isVIP, isAdmin, vipDetails, logout } = useAuth();
+  const { user, isVIP, isAdmin, vipDetails } = useAuth();
   const { appConfig, updateSettings } = useData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -125,21 +123,22 @@ export function ProfileView({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-black text-stone-900 text-lg truncate">
-              {isAdmin ? 'राजकुमार चौरसिया' : user?.name || 'अतिथि विद्यार्थी'}
+              {isAdmin ? 'राजकुमार चौरसिया' : (user?.name || 'BSEB GURU विद्यार्थी')}
             </h3>
             {isAdmin ? (
               <span className="bg-amber-400 text-stone-950 font-black px-2 py-0.5 rounded-full text-xs shadow-xs flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 fill-current" />
                 सुपर एडमिन
               </span>
-            ) : isVIP ? (
-              <span className="bg-amber-400 text-stone-950 p-1 rounded-full text-xs shadow-xs" title="VIP स्टूडेंट">
+            ) : (
+              <span className="bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-full text-xs shadow-xs flex items-center gap-1">
                 <Crown className="w-3 h-3 fill-current" />
+                100% मुफ़्त एक्सेस
               </span>
-            ) : null}
+            )}
           </div>
           <p className="text-xs text-stone-500 font-mono truncate">
-            {user?.email || 'जीमेल कनेक्ट नहीं है'}
+            {isAdmin ? 'rajkumarchaurasia141@gmail.com' : 'डायरेक्ट स्टडी मोड (बिना लॉगिन)'}
           </p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
@@ -164,34 +163,7 @@ export function ProfileView({
         </div>
       </div>
 
-      {/* Gmail Identification Card for Admin / Student Sync */}
-      {onOpenGmailAuth && (
-        <div className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 rounded-3xl p-4 text-white border border-amber-500/30 shadow-md">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 shrink-0">
-                <Mail className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-black text-sm text-white">
-                  {isAdmin ? 'एडमिन जीमेल सक्रिय है' : 'जीमेल से पहचान'}
-                </h4>
-                <p className="text-[11px] text-stone-300 mt-0.5">
-                  {isAdmin 
-                    ? `${user?.email || 'एडमिन'} से लॉग इन हैं` 
-                    : 'VIP प्रोफाइल अपने जीमेल से सीधे पहचानें'}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onOpenGmailAuth}
-              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-black text-xs rounded-xl shadow-xs transition-transform active:scale-95 cursor-pointer shrink-0"
-            >
-              {isAdmin ? 'जीमेल बदलें' : 'पहचान करें'}
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Subscription Status Card */}
       <div className="rounded-3xl p-5 border shadow-xs space-y-3 bg-gradient-to-br from-emerald-500/10 via-emerald-100/40 to-white border-emerald-300">
@@ -272,43 +244,33 @@ export function ProfileView({
           <ChevronRight className="w-4 h-4 text-stone-400" />
         </button>
 
-        {isAdmin && (
-          <button
-            onClick={() => onOpenAdmin()}
-            className="w-full p-4 flex items-center justify-between bg-stone-900 text-white hover:bg-black transition-colors cursor-pointer text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-stone-800 text-amber-400 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="font-bold text-sm text-white">एडमिन मैनेजमेंट पैनल</div>
-                <div className="text-[11px] text-amber-300">पेमेंट रिक्वेस्ट, छात्र लिस्ट & VIP अप्रूवल</div>
-              </div>
+        <button
+          onClick={() => onOpenAdmin()}
+          className="w-full p-4 flex items-center justify-between bg-stone-900 text-white hover:bg-black transition-colors cursor-pointer text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-stone-800 text-amber-400 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4" />
             </div>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
-        )}
+            <div>
+              <div className="font-bold text-sm text-white">एडमिन मैनेजमेंट पैनल</div>
+              <div className="text-[11px] text-amber-300">कंटेंट, क्लास और सेटिंग्स प्रबंधन (पासवर्ड द्वारा सुरक्षित)</div>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-stone-400" />
+        </button>
       </div>
 
-      {/* Logout or Login with Gmail */}
-      {user?.email ? (
-        <button
-          onClick={logout}
-          className="w-full p-3.5 rounded-2xl bg-white hover:bg-rose-50 text-rose-600 font-bold text-xs border border-rose-200 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>लॉगआउट करें / जीमेल बदलें</span>
-        </button>
-      ) : onOpenGmailAuth ? (
-        <button
-          onClick={onOpenGmailAuth}
-          className="w-full p-3.5 rounded-2xl bg-stone-900 hover:bg-black text-amber-400 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
-        >
-          <Mail className="w-4 h-4" />
-          <span>जीमेल से पहचान / लॉगिन करें</span>
-        </button>
-      ) : null}
+      {/* Direct Study Mode Notice Card */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center space-y-1">
+        <div className="flex items-center justify-center gap-1.5 text-emerald-800 font-bold text-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>डायरेक्ट स्टडी मोड सक्रिय है</span>
+        </div>
+        <p className="text-[11px] text-emerald-700 font-medium">
+          किसी भी लॉगिन या आईडी की आवश्यकता नहीं है। सभी कक्षाएं, टेस्ट और नोट्स पूर्ण रूप से मुफ़्त हैं।
+        </p>
+      </div>
     </div>
   );
 }
